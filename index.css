@@ -10,7 +10,12 @@ button, input[type="text"] {
   padding: 5px;
 }
 
-button:hover {
+input[type="button"] {
+  padding: 5px;
+  margin-top: 16px;
+}
+
+button:hover, input[type="button"]:hover {
   cursor: pointer;
 }
 
