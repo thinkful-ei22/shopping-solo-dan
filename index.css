@@ -23,6 +23,10 @@ button:hover, input[type="button"]:hover {
   display: none;
 }
 
+.display-block {
+  display: block;
+}
+
 #shopping-list-item {
   width: 250px;
 }

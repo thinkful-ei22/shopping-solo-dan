@@ -11,11 +11,18 @@ const STORE = {
 };
 
 
-function generateItemElement(item, itemIndex, template) {
+function generateItemElement(item, itemIndex) {
   return `
     <li class="js-item-index-element" data-item-index="${itemIndex}">
       <span class="shopping-item js-shopping-item ${item.checked ? 'shopping-item__checked' : ''}">${item.name}</span>
       <div class="shopping-item-controls">
+      <form id="js-item-edit-form" class="hidden">
+            <input type="text" name="shopping-list-item-edit" class="js-shopping-list-item-edit">
+            <button type="submit">save</button>
+        </form>
+      <button class="shopping-item-edit js-item-edit">
+            <span class="button-label">edit</span>
+        </button>
         <button class="shopping-item-toggle js-item-toggle">
             <span class="button-label">check</span>
         </button>
@@ -45,11 +52,9 @@ function renderShoppingList() {
     $('.js-shopping-list').html(shoppingListItemsString);
   } else {
     //if hideChecked is true, show only unchecked items
-    const uncheckedItems = generateShoppingItemsString(getUncheckedItems());
-    $('.js-shopping-list').html(uncheckedItems);
+    const shoppingListUncheckedItemsString = generateShoppingItemsString(getUncheckedItems());
+    $('.js-shopping-list').html(shoppingListUncheckedItemsString);
   }
-  
-
 }
 
 
@@ -105,28 +110,12 @@ function handleDeleteItemClicked() {
   });
 }
 
-/*
-const STORE = {
-  items: [
-    { name: 'apples', checked: false },
-    { name: 'oranges', checked: false },
-    { name: 'milk', checked: true },
-    { name: 'bread', checked: false }
-  ],
-  hideChecked: false;
-};
-*/
-
-
 //get unchecked items
 function getUncheckedItems (){
   //create new array of items with unchecked items
   let uncheckedItems = STORE['items'].filter(item => item.checked === false);
   return uncheckedItems;
 }
-//
-
-
 
 //Toggle checked items
 function handleToggleCheckedItems (){
@@ -134,6 +123,43 @@ function handleToggleCheckedItems (){
     STORE.hideChecked = !STORE.hideChecked;
     renderShoppingList();
   });
+}
+
+//Edit mode
+function editMode(event){
+  let $li = $(event.currentTarget).closest('li');
+  $li.find('.js-shopping-item').toggleClass('display-block');
+  $li.find('#js-item-edit-form').toggleClass('hidden');
+  $li.find('.js-shopping-item').toggleClass('hidden');
+}
+
+//Enter edit mode
+function handleEnterEditMode (){
+  $('.js-shopping-list').on('click', '.js-item-edit', event => {
+    editMode(event);
+    let currentName = $(event.currentTarget).closest('li').find('.js-shopping-item').text();
+    $(event.currentTarget).closest('li').find('input[name="shopping-list-item-edit"]').val(currentName).focus();
+  });
+}
+
+//Exit edit mode
+function handleExitEditMode() {
+  $('.js-shopping-list').on('focusout', 'input[name="shopping-list-item-edit"]', event => {
+    let editedItemName = $(event.currentTarget).closest('li').find('input[name="shopping-list-item-edit"]').val();
+    const itemIndex = getItemIndexFromElement(event.currentTarget);
+    editMode(event);
+    editListItem(itemIndex, editedItemName);
+  });
+}
+
+//Edit title of item
+function editListItem(itemIndex, newValue) {
+  if (!newValue) {
+    deleteCheckedForListItem(itemIndex);
+  } else {
+    STORE['items'][itemIndex].name = newValue;
+  }
+  renderShoppingList();
 }
 
 
@@ -147,7 +173,8 @@ function handleShoppingList() {
   handleItemCheckClicked();
   handleDeleteItemClicked();
   handleToggleCheckedItems();
-  //handleEditListItem();
+  handleEnterEditMode();
+  handleExitEditMode();
 }
 
 // when the page loads, call `handleShoppingList`
